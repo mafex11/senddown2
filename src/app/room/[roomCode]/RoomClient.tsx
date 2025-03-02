@@ -88,7 +88,7 @@ export default function RoomClient({ roomCode, initialFiles }: RoomClientProps) 
       </div>
 
       {/* Files Section */}
-      <h3 className="text-lg mb-2">Available Files</h3>
+      <h3 className="text-lg mb-2">Shared Files</h3>
       <ul className="space-y-2 mb-4">
         {files.map((file) => (
           <li key={file.fileName}>

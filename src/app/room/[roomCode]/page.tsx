@@ -1,5 +1,5 @@
 import { MongoClient } from "mongodb";
-import RoomClient from "./RoomClient"; // New client component
+import RoomClient from "./RoomClient";
 
 interface FileInfo {
   fileName: string;
@@ -7,18 +7,22 @@ interface FileInfo {
 }
 
 interface RoomPageProps {
-  params: Promise<{ roomCode: string }>; // Server component expects Promise
+  params: Promise<{ roomCode: string }>;
 }
 
 export default async function RoomPage({ params }: RoomPageProps) {
-  const { roomCode } = await params; // Await params in server component
+  const { roomCode } = await params;
 
-  // Fetch initial files from MongoDB
-  const client = new MongoClient(process.env.MONGODB_URI!);
+  const MONGODB_URI = process.env.MONGODB_URI;
+  if (!MONGODB_URI) {
+    throw new Error("Missing MONGODB_URI environment variable");
+  }
+
+  const client = new MongoClient(MONGODB_URI);
   await client.connect();
-  const db = client.db("Cluster0");
+  const db = client.db("senddown");
   const room = await db.collection("rooms").findOne({ roomCode });
-  const initialFiles = room?.files || [];
+  const initialFiles = (room?.files as FileInfo[]) || [];
   await client.close();
 
   return <RoomClient roomCode={roomCode} initialFiles={initialFiles} />;
