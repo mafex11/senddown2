@@ -1,6 +1,7 @@
 import { MongoClient } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
+// Define interfaces
 interface FileInfo {
   fileName: string;
   cloudinaryUrl: string;
@@ -14,14 +15,13 @@ interface RoomDocument {
 
 export const dynamic = "force-dynamic";
 
-const MONGODB_URI = process.env.MONGODB_URI;
-const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+// Validate and assert environment variables
+const MONGODB_URI = process.env.MONGODB_URI ?? throwError("MONGODB_URI");
+const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? throwError("NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME");
+const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? throwError("NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET");
 
-if (!MONGODB_URI || !CLOUDINARY_CLOUD_NAME || !UPLOAD_PRESET) {
-  throw new Error(
-    "Missing required environment variables: MONGODB_URI, NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME, or NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET"
-  );
+function throwError(varName: string): never {
+  throw new Error(`Missing required environment variable: ${varName}`);
 }
 
 const client = new MongoClient(MONGODB_URI);
@@ -60,9 +60,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "File and room code required" }, { status: 400 });
     }
 
+    // Upload to Cloudinary
     const cloudinaryFormData = new FormData();
     cloudinaryFormData.append("file", file);
-    cloudinaryFormData.append("upload_preset", UPLOAD_PRESET);
+    cloudinaryFormData.append("upload_preset", UPLOAD_PRESET); // TypeScript now knows this is a string
 
     const cloudinaryRes = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`,
