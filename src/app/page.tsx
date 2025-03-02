@@ -4,18 +4,23 @@ import { useState } from "react";
 import QRCode from "qrcode";
 import { networkInterfaces } from "os";
 
-// No metadata export here since it's a client component
-const getLocalIP = (): string => {
+// Determine the base URL based on environment
+const getBaseUrl = (): string => {
+  // Use Vercel URL in production, fallback to local IP or localhost in development
+  if (process.env.NEXT_PUBLIC_VERCEL_URL) {
+    return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+  }
+
+  // For local development, use local IP if available
   const interfaces = networkInterfaces();
   for (const name of Object.keys(interfaces)) {
     for (const iface of interfaces[name]!) {
       if (iface.family === "IPv4" && !iface.internal) {
-        return iface.address; // e.g., "192.168.1.x"
+        return `http://${iface.address}:3000`;
       }
     }
   }
-  return "localhost"; // Fallback
-  console.log(getLocalIP)
+  return "http://localhost:3000"; // Fallback for local dev without network
 };
 
 export default function Home() {
@@ -25,8 +30,8 @@ export default function Home() {
   const createRoom = async () => {
     const code = Math.random().toString(36).substring(2, 8); // e.g., "abc123"
     setRoomCode(code);
-    const localIP = getLocalIP();
-    const url = `http://${localIP}:3000/room/${code}`;
+    const baseUrl = getBaseUrl();
+    const url = `${baseUrl}/room/${code}`;
     const qr = await QRCode.toDataURL(url);
     setQrCodeUrl(qr);
   };
